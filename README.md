@@ -62,9 +62,10 @@ Build tools and pipelining
 
 # Enter Webpack
 
-- There are other tools (gulp, browserify etc)
-- Webpack is primarily a bundling tool, but it can do more
-- Essentially we can use it as a pipelining tool to encompass other build tools chained together
+<div class="columns">
+
+- Webpack is primarily a bundling tool
+- We can use it as a pipelining tool to chain other build tools
 - The following config imports `app.js` and creates a bundled output `app.bundle.js` in the `dist` directory
 - Notice we are using commonjs `require()` not es2015 `import` in the webpack config
 - By default webpack only cares about js and json files
@@ -82,6 +83,8 @@ module.exports = {
 };
 ```
 
+</div>
+
 # How do we import modules?
 
 - When webpack sees an import statement it will import / require the module and add it to our bundle
@@ -94,11 +97,11 @@ module.exports = {
 
 # Development server
 
-- In development we can use something called webpack-dev-server
-- It is a node server which can rebuild our application on change
-- Webpack dev server can "hot" reload changed js modules and update them in our browser directly triggering a reload
-- This is useful when we are actively building and changing things regularly
-- In combination with `html-plugin-webpack` we can inject our compiled scripts into a template html file
+<div class="columns">
+
+- `webpack-dev-server`is a node server which can rebuild our application on change in development
+- It can "hot" reload changed js modules and update them in our browser directly, triggering a reload
+- In combination with `html-plugin-webpack` we can inject our compiled scripts into a template HTML file
 - In development we can see all our files loaded individually in the console
 
 ```js
@@ -118,15 +121,18 @@ let config = {
 }
 ```
 
+</div>
+
 # Loaders
 
+<div class="columns">
+
 - Webpack only understands JS and JSON out of the box
-- If Webpack sees a file that it doesnt recognise as JS or JSON it will fail with a loader error
-- To import other types of files we need to tell Webpack how to load them and make them and make them into a valid JS module
+- If we try to load a file Webpack doesnt understand compilation will fail with a loader error
+- We need to tell Webpack how to load other types of files and convert them to a JS module
 - We do this using loaders
 - In the case of JSX, we use Babel to covert JSX files into valid javascript
-- We use babel-loader to tell Webpack to use Babel to convert (transpile) `.jsx` files
-- We do this by adding to our webpack config:
+- We use `babel-loader` to tell Webpack to use Babel to convert (transpile) `.jsx` files
 
 ```js
 
@@ -150,6 +156,8 @@ var config = {
 
 ```
 
+</div>
+
 # Hold on who is Babel?
 
 - Well Babel is a tool for converting modern JS into browser compatible JS
@@ -159,43 +167,62 @@ var config = {
 - Babel has a number of libraries for converting different types of modern JS features
 - 2 presets of importance are `@babel/preset-env` for converting standard es2015+ features and `@babel/preset-typescript` for converting typescript
 
-# Asset minification and obfuscation, and minification
+# Asset minification
+
+<div class="columns">
 
 - As we add more libraries our bundle gets bigger and bigger
-- In order to reduce the size we habve a number of options
 - We can minify our code to single line with no whitespace
-- We can obfuscate or shorten variable and function names to further shorten our code (and obfuscate the meaning)
 - We can remove code that is not used or called (tree shaking)
 - We do this using the `terser-webpack-plugin`
 - In Webpack 5 this is added by default to "production" builds
 - In pre webpack 5 we have to ad the plugin manually
 
+```js
+const TerserPlugin = require("terser-webpack-plugin");
+
+var config = {
+  ...
+}
+
+if (ENV === 'production') {
+  config.optimization = Object.assign(config.optimization || {}, {
+    minimize: true,
+    minimizer: [new TerserPlugin()]
+  })
+}
+```
+
+</div>
+
 # Cache management
 
-- When we create a bundle the browser will cache for us
-- We might also cache content where we serve it say using Cloudfront or Varnish for example
-- We can invalidate caches by adding a hash to our bundled output filename so we know when files have been rebuilt and changed
-- Our `html-webpack-plugin` will handle placing the modified filename into our index.html
-- We dont cache our index.html because its small and we let the browser decide when it has updated
-- Old files need to be cleaned up once the new files are deployed
+<div class="columns">
+
+- Assets can be cached by both the browser and our server eg Varnish or Cloudfront
+- We can invalidate caches by adding a unique hash per build to our bundled output filename
+- Our `html-webpack-plugin` will handle placing the link to our bundled asset into our index.html
+- We dont cache our index.html because its small
 
 ```js
 var config = {
-  mode: 'development',
-  entry: './app.js',
+  ...
   output: {
-    path: path.resolve(__dirname, 'dist'),
     filename: 'app.[contenthash].bundle.js'
   }
 };
 ```
 
+</div>
+
 # Chunks
 
-- Application modules change often, but thrid party libraries do not
+<div class="columns">
+
+- Application modules change often, but third party libraries do not
 - Third party libraries can often be a large part of our overall output
 - We often want to cache libraries separately from our application code
-- Webpack allows us to split bundle into separate chunked files
+- Webpack allows us to split our bundle into separate chunked files
 
 ```js
 var config = {
@@ -218,7 +245,11 @@ var config = {
 }
 ```
 
+</div>
+
 # Source maps
+
+<div class="columns">
 
 - Minified, obfuscated is code near impossible to read for debugging
 - Tools that report errors in production can't give us meaningful information on where errors occur
@@ -230,3 +261,25 @@ var config = {
   ...
   devtool: 'eval'
 }
+
+// Other options can be found at
+// https://webpack.js.org/configuration/devtool/
+```
+
+</div>
+
+# CSS in Javascript
+
+- As we mentioned earlier we can import other types of files using loaders
+- We can use Loaders to turn CSS into JS modules
+- `css-loader` converts our css into a javascript module
+- `style-loader` injects the styles into the DOM
+- `postcss-loader` modifies our CSS to make it compatible with our browsers (similar to Babel for CSS)
+
+# And a whole lot more
+
+- Webpack is super powerful
+- We can convert almost all browser asets into something Javascript in the browser
+- We can pipeline our entire build process
+- We can even run tests or linting tools
+- We can run a development environment for local only

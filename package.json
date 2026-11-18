@@ -1,9 +1,10 @@
 {
   "scripts": {
     "start": "marp -I . --server",
-    "build": "marp README.md -o build/index.html"
+    "build": "marp README.md --no-stdin -o build/index.html",
+    "test": "node --test test/*.test.mjs"
   },
   "devDependencies": {
-    "@marp-team/marp-cli": "^4.2.3"
+    "@marp-team/marp-cli": "^4.5.1"
   }
 }

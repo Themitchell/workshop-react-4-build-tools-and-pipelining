@@ -1,0 +1,35 @@
+name: build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Copy images
+        run: mkdir build && cp -R img build/img
+
+      - name: Marp Build (HTML)
+        uses: docker://marpteam/marp-cli:latest
+        with:
+          args: README.md -o build/index.html
+        env:
+          MARP_USER: root:root
+
+      - name: Marp Build (PDF)
+        uses: docker://marpteam/marp-cli:latest
+        with:
+          args: README.md -o build/slides.pdf
+        env:
+          MARP_USER: root:root
+
+      - name: Upload site
+        uses: actions/upload-artifact@v7
+        with:
+          name: marp-site
+          path: build/
+          retention-days: 1

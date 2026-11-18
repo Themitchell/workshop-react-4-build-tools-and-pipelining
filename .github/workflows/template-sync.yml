@@ -2,11 +2,14 @@ name: template-sync
 
 on:
   schedule:
-  - cron:  "0 0 1 * *"
+    - cron: "0 0 1 * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
+  workflows: write
+  actions: write
 
 jobs:
   repo-sync:
@@ -15,18 +18,24 @@ jobs:
     steps:
       - name: Generate token for marp-template-sync Github App
         id: generate_token
-        uses: tibdex/github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
-          app_id: ${{ secrets.MARP_TEMPLATE_SYNC_APP_ID }}
-          private_key: ${{ secrets.MARP_TEMPLATE_SYNC_PRIVATE_KEY }}
+          app-id: ${{ secrets.MARP_TEMPLATE_SYNC_APP_ID }}
+          private-key: ${{ secrets.MARP_TEMPLATE_SYNC_PRIVATE_KEY }}
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           token: ${{ steps.generate_token.outputs.token }}
 
+      - name: Keep scheduled workflow enabled
+        if: github.event_name == 'schedule'
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/template-sync.yml/enable"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       - name: actions-template-sync
-        uses: AndreasAugustin/actions-template-sync@v1.1.3
+        uses: AndreasAugustin/actions-template-sync@v2.6.0
         with:
           github_token: ${{ steps.generate_token.outputs.token }}
           source_repo_path: themitchell/marp-template

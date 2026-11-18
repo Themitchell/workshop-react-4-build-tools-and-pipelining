@@ -36,6 +36,5 @@ jobs:
       - name: actions-template-sync
         uses: AndreasAugustin/actions-template-sync@v2.6.0
         with:
-          source_gh_token: ${{ steps.generate_token.outputs.token }}
-          target_gh_token: ${{ steps.generate_token.outputs.token }}
+          github_token: ${{ steps.generate_token.outputs.token }}
           source_repo_path: themitchell/marp-template

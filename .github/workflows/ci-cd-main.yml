@@ -1,0 +1,30 @@
+name: CI/CD (main)
+
+concurrency:
+  group: ci-cd-main
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: test
+    uses: ./.github/workflows/stage-1-test.yml
+
+  build:
+    name: build
+    needs: test
+    uses: ./.github/workflows/stage-2-build.yml
+
+  deploy:
+    name: deploy
+    needs: build
+    uses: ./.github/workflows/stage-3-deploy.yml
+    with:
+      mode: production
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write

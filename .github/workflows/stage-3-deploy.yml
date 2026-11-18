@@ -65,7 +65,7 @@ jobs:
 
       - name: Release PDF
         if: inputs.mode == 'production'
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           files: build/slides.pdf

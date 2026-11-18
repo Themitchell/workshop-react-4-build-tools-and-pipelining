@@ -1,0 +1,72 @@
+name: deploy
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: production, preview, or remove
+        type: string
+        required: true
+      pr-number:
+        description: Pull request number for preview deploy or remove
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download site
+        if: inputs.mode == 'production' || inputs.mode == 'preview'
+        uses: actions/download-artifact@v8
+        with:
+          name: marp-site
+          path: build/
+
+      - name: Deploy preview
+        if: inputs.mode == 'preview'
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          action: deploy
+          source-dir: ./build/
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          pr-number: ${{ inputs.pr-number }}
+
+      - name: Remove preview
+        if: inputs.mode == 'remove'
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          action: remove
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          pr-number: ${{ inputs.pr-number }}
+
+      - name: Deploy production
+        if: inputs.mode == 'production'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: ./build/
+          clean-exclude: pr-preview/
+
+      - name: Generate release tag
+        if: inputs.mode == 'production'
+        id: tag
+        run: echo "release_tag=Build-$(date +'%Y.%m.%d_%H-%M')" >> "$GITHUB_OUTPUT"
+
+      - name: Release PDF
+        if: inputs.mode == 'production'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          files: build/slides.pdf
+

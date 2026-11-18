@@ -17,13 +17,13 @@ jobs:
     steps:
       - name: Generate token for marp-template-sync Github App
         id: generate_token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
           app-id: ${{ secrets.MARP_TEMPLATE_SYNC_APP_ID }}
           private-key: ${{ secrets.MARP_TEMPLATE_SYNC_PRIVATE_KEY }}
 
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           token: ${{ steps.generate_token.outputs.token }}
 
@@ -34,7 +34,7 @@ jobs:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
       - name: actions-template-sync
-        uses: AndreasAugustin/actions-template-sync@v2.6.0
+        uses: AndreasAugustin/actions-template-sync@6e1d0089686f8940604fc15baae62367bf6ee860 # v2.6.0
         with:
           source_gh_token: ${{ steps.generate_token.outputs.token }}
           target_gh_token: ${{ steps.generate_token.outputs.token }}

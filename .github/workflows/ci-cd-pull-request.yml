@@ -1,0 +1,67 @@
+name: CI/CD (pull request)
+
+concurrency:
+  group: ci-cd-pull-request-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - closed
+
+jobs:
+  test:
+    name: test
+    if: |
+      github.event.action != 'closed' &&
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy')
+    uses: ./.github/workflows/stage-1-test.yml
+
+  build:
+    name: build
+    needs: test
+    if: |
+      needs.test.result == 'success' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy')
+    uses: ./.github/workflows/stage-2-build.yml
+
+  deploy:
+    name: deploy
+    needs: build
+    if: needs.build.result == 'success'
+    uses: ./.github/workflows/stage-3-deploy.yml
+    with:
+      mode: preview
+      pr-number: ${{ github.event.pull_request.number }}
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
+
+  remove-preview:
+    name: remove-preview
+    if: github.event.action == 'closed'
+    uses: ./.github/workflows/stage-3-deploy.yml
+    with:
+      mode: remove
+      pr-number: ${{ github.event.pull_request.number }}
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
+
+  automerge:
+    name: automerge
+    needs: test
+    if: |
+      needs.test.result == 'success' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+    uses: ./.github/workflows/stage-4-automerge.yml
+    secrets: inherit
+    permissions:
+      contents: write
+      pull-requests: write
